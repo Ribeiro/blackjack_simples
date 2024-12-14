@@ -11,6 +11,7 @@ fn main() {
     let qtd_minima_cartas_no_deck = 10;
     let mut deck = criar_baralho(num_decks, qtd_naipes, qtd_cartas);
     let mut resultado: String = String::from("");
+    let mut houve_estouro_vitoria_empate: bool = false;
 
     println!("Digite o valor inicial para apostar:");
     let dinheiro_jogador_inicial = le_inteiro();
@@ -18,19 +19,19 @@ fn main() {
 
     loop {
         if deck.len() < qtd_minima_cartas_no_deck {
-            println!("Acabaram as cartas, jogo encerrado!");
+            resultado = "Acabaram as cartas. Jogo encerrado!".to_string();
             break;
         }
 
         if dinheiro_jogador == 0 {
-            println!("Você ficou sem dinheiro, jogo encerrado!");
+            resultado = "Você ficou sem dinheiro. Jogo encerrado!".to_string();
             break;
         }
 
         println!("Você tem {} de dinheiro. Deseja continuar jogando? (s/n)", dinheiro_jogador);
         let continuar = le_string();
         if continuar.trim().to_lowercase() != "s" {
-            println!("Jogo encerrado por opção do jogador!");
+            resultado = "Jogo encerrado por opção do jogador!".to_string();
             break;
         }
 
@@ -54,7 +55,7 @@ fn main() {
             let p_jogador = pontuacao_jogador(mao_jogador.clone());
             println!("Suas cartas: {:?} (pontuação jogador: {})", mao_jogador, p_jogador);
             if p_jogador > pontuacao_maxima {
-                println!("Você estourou! Pontos: {}", p_jogador);
+                println!("Você estourou! Pontos do jogador: {}", p_jogador);
                 dinheiro_jogador -= aposta;
                 break;
             }
@@ -89,7 +90,8 @@ fn main() {
         loop {
             let p_mesa = pontuacao_mesa(mao_mesa.clone());
             if p_mesa > pontuacao_maxima {
-                println!("Mesa estourou! Pontos da mesa: {}", p_mesa);
+                resultado = format!("Mesa estourou! Pontos da mesa: {}", p_mesa);
+                houve_estouro_vitoria_empate = true;
                 dinheiro_jogador += aposta;
                 break;
             }
@@ -97,22 +99,39 @@ fn main() {
             if p_mesa >= pontuacao_minima {
                 println!("A mesa parou de comprar. Pontos da mesa: {}", p_mesa);
                 if p_mesa > p_jogador {
-                    println!("A mesa ganhou! {} vs {}", p_mesa, p_jogador);
+                    resultado = format!("A mesa ganhou! {} vs {}", p_mesa, p_jogador);
+                    houve_estouro_vitoria_empate = true;
                     dinheiro_jogador -= aposta;
+
                 } else if p_mesa < p_jogador {
-                    println!("Você ganhou! {} vs {}", p_jogador, p_mesa);
+                    resultado = format!("Jogador ganhou! {} vs {}", p_jogador, p_mesa);
+                    houve_estouro_vitoria_empate = true;
                     dinheiro_jogador += aposta;
+
                 } else {
                     println!("Empate! Ninguém ganha ou perde.");
+                    resultado = "Empate! Ninguém ganha ou perde.".to_string();
+                    houve_estouro_vitoria_empate = true;
                 }
                 break;
             } else {
                 comprar_carta(&mut deck, &mut mao_mesa);
             }
         }
+
+        if houve_estouro_vitoria_empate {
+            break;
+        }
     }
 
-    println!("Resultado do jogo {}.", resultado);
+    if resultado.contains("Mesa estourou"){
+        println!("Vencedor: O Jogador!");    
+
+    }else if resultado.contains("Jogador estourou")  {
+        println!("Vencedor: A Mesa!");    
+    }
+
+    println!("Resultado do jogo: {}.", resultado);
     println!("Você terminou com {} de dinheiro.", dinheiro_jogador);
     println!("Obrigado por jogar!");
 }
